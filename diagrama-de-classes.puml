@@ -1,0 +1,128 @@
+@startuml diagrama-de-classes
+title Sistema de Gestão das Olimpíadas (SGO) - Diagrama de Classes
+
+skinparam classAttributeIconSize 0
+skinparam classFontStyle bold
+
+enum TipoMedalha {
+  OURO
+  PRATA
+  BRONZE
+}
+
+enum StatusCompeticao {
+  AGENDADA
+  EM_ANDAMENTO
+  FINALIZADA
+  CANCELADA
+}
+
+class Pais {
+  - id: Long
+  - nome: String
+  - sigla: String
+  - bandeira: String
+  + adicionarAtleta(atleta: Atleta): void
+  + listarAtletas(): List<Atleta>
+  + totalMedalhas(): int
+}
+
+class Atleta {
+  - id: Long
+  - nome: String
+  - dataNascimento: Date
+  - genero: String
+  - documento: String
+  + inscreverEm(competicao: Competicao, modalidade: Modalidade): Inscricao
+  + listarCompeticoes(): List<Competicao>
+  + listarMedalhas(): List<Medalha>
+}
+
+class Modalidade {
+  - id: Long
+  - nome: String
+  - descricao: String
+  - categoria: String
+  + listarCompeticoes(): List<Competicao>
+}
+
+class Competicao {
+  - id: Long
+  - nome: String
+  - data: Date
+  - horario: Time
+  - status: StatusCompeticao
+  + cadastrar(): void
+  + editar(): void
+  + cancelar(): void
+  + listarInscritos(): List<Atleta>
+  + iniciar(): void
+  + finalizar(): void
+}
+
+class Inscricao {
+  - id: Long
+  - dataInscricao: Date
+  - validada: boolean
+  + validar(): void
+  + cancelar(): void
+}
+
+class Local {
+  - id: Long
+  - nome: String
+  - endereco: String
+  - capacidade: int
+  + verificarDisponibilidade(data: Date, horario: Time): boolean
+  + listarCompeticoes(): List<Competicao>
+}
+
+class Resultado {
+  - id: Long
+  - dataRegistro: Date
+  - tempoOuPontuacao: String
+  - posicao: int
+  + registrar(): void
+  + definirPodio(): void
+}
+
+class Medalha {
+  - id: Long
+  - tipo: TipoMedalha
+  - dataConquista: Date
+  + atribuir(atleta: Atleta, competicao: Competicao): void
+}
+
+class RelatorioMedalhas {
+  - id: Long
+  - dataGeracao: Date
+  - periodo: String
+  + gerarPorPais(): Map<Pais, Integer>
+  + gerarRankingGeral(): List<Pais>
+  + exportarPDF(): File
+}
+
+class Usuario {
+  - id: Long
+  - login: String
+  - senha: String
+  - perfil: String
+  + autenticar(): boolean
+}
+
+' Relacionamentos
+Pais "1" -- "0..*" Atleta : possui >
+Atleta "1..*" -- "1..*" Competicao : (via Inscricao)
+Atleta "1" -- "0..*" Inscricao : realiza >
+Competicao "1" -- "0..*" Inscricao : recebe >
+Competicao "1" -- "1" Modalidade : pertence a >
+Competicao "0..*" -- "1" Local : ocorre em >
+Competicao "1" -- "0..*" Resultado : possui >
+Resultado "1" -- "1" Atleta : refere-se a >
+Resultado "1" -- "0..1" Medalha : gera >
+Medalha "0..*" -- "1" Pais : pertence a >
+RelatorioMedalhas "1" -- "0..*" Pais : analisa >
+Competicao -- StatusCompeticao
+Medalha -- TipoMedalha
+
+@enduml
