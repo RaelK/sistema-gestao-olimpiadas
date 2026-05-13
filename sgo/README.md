@@ -2,6 +2,11 @@
 
 Projeto desenvolvido para a disciplina **Projeto de Software** do curso de **Engenharia de Software** da **PUC Minas**, sob orientação do professor **João Paulo Carneiro Aramuni**.
 
+## 👨‍💻 Integrantes
+
+- Bruna Lopes de Souza
+- Rael Kiluanji de Jesus Cassimiro
+
 ---
 
 ## 📑 Sumário
