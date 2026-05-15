@@ -1,0 +1,153 @@
+@startuml diagrama-de-sequencia
+title Diagrama de Sequência - SGO: Inscrição de Atleta, Alocação de Local e Registro de Resultados
+
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+actor Atleta as atleta
+actor Organizador as org
+actor Juiz as juiz
+
+participant "Interface\nde Usuário" as UI
+participant "Sistema SGO\n(Controller + Service)" as sis
+participant "Validador" as val
+participant "CalculadoraMedalhas" as calc
+participant "Módulo de\nNotificações" as notif
+database "Banco de\nDados" as DB
+
+== 1. Inscrição de Atleta ==
+
+atleta -> UI : 1. solicita inscrição em competição
+activate UI
+UI -> sis : 2. inscrever(atletaId, competicaoId, paisId)
+activate sis
+
+sis -> DB : 3. buscar dados do atleta e competição
+activate DB
+DB --> sis : 4. retorna atleta e competição
+deactivate DB
+
+sis -> val : 5. validarInscricao(atleta, competicao, pais)
+activate val
+val -> DB : 6. verifica se atleta já representa outro país\nna mesma modalidade
+activate DB
+DB --> val : 7. retorna resultado da verificação
+deactivate DB
+
+alt inscrição válida
+    val --> sis : 8. inscrição permitida
+    deactivate val
+    sis -> DB : 9. salvar inscrição
+    activate DB
+    DB --> sis : 10. inscrição confirmada
+    deactivate DB
+    sis -> notif : 11. notificar atleta
+    activate notif
+    notif --> sis : 12. notificação enviada
+    deactivate notif
+    sis --> UI : 13. sucesso
+    UI --> atleta : 14. exibe confirmação
+else atleta já representa outro país
+    val --> sis : 8b. erro de validação
+    sis --> UI : 9b. erro
+    UI --> atleta : 10b. exibe mensagem de erro
+end
+deactivate sis
+deactivate UI
+
+== 2. Alocação de Local ==
+
+org -> UI : 15. solicita alocação de local
+activate UI
+UI -> sis : 16. alocarLocal(competicaoId, localId)
+activate sis
+
+sis -> DB : 17. buscar competição e local
+activate DB
+DB --> sis : 18. retorna competição e local
+deactivate DB
+
+sis -> val : 19. verificarConflitoHorario(local, data, horario)
+activate val
+val -> DB : 20. busca competições no mesmo local/horário
+activate DB
+DB --> val : 21. retorna conflitos encontrados
+deactivate DB
+
+alt sem conflito de horário
+    val --> sis : 22. local disponível
+    deactivate val
+    sis -> DB : 23. atualizar competição com local
+    activate DB
+    DB --> sis : 24. alocação salva
+    deactivate DB
+    sis --> UI : 25. sucesso
+    UI --> org : 26. exibe confirmação
+else conflito detectado
+    val --> sis : 22b. conflito de horário
+    sis -> DB : 23b. busca locais alternativos
+    activate DB
+    DB --> sis : 24b. retorna lista de locais
+    deactivate DB
+    sis --> UI : 25b. erro + sugestões
+    UI --> org : 26b. exibe conflito e sugestões
+end
+deactivate sis
+deactivate UI
+
+== 3. Registro de Resultados ==
+
+juiz -> UI : 27. seleciona competição e informa pódio (1º, 2º, 3º)
+activate UI
+UI -> sis : 28. registrarResultado(competicaoId, podio)
+activate sis
+
+sis -> DB : 29. buscar competição
+activate DB
+DB --> sis : 30. retorna competição
+deactivate DB
+
+sis -> sis : 31. validar status da competição
+
+loop para cada classificado (1º, 2º, 3º lugar)
+    sis -> DB : 32. salvar resultado(atleta, posição)
+    activate DB
+    DB --> sis : 33. resultado salvo
+    deactivate DB
+end
+
+sis -> calc : 34. atribuirMedalhas(resultados)
+activate calc
+note right of calc
+  Regra:
+  1º lugar = OURO
+  2º lugar = PRATA
+  3º lugar = BRONZE
+end note
+
+loop para cada resultado
+    calc -> DB : 35. salvar medalha(atleta, tipo)
+    activate DB
+    DB --> calc : 36. medalha registrada
+    deactivate DB
+end
+
+calc --> sis : 37. medalhas atribuídas
+deactivate calc
+
+sis -> DB : 38. atualizar status da competição para FINALIZADA
+activate DB
+DB --> sis : 39. status atualizado
+deactivate DB
+
+sis -> notif : 40. notificar vencedores
+activate notif
+notif --> sis : 41. notificações enviadas
+deactivate notif
+
+sis --> UI : 42. resultado registrado
+deactivate sis
+UI --> juiz : 43. exibe pódio e medalhas
+deactivate UI
+
+@enduml
