@@ -212,6 +212,16 @@ Mostra os principais componentes do sistema e como eles se comunicam: **Interfac
 
 ---
 
+### Diagrama de Sequência
+
+Evidencia a ordem temporal das mensagens trocadas entre os atores e o sistema durante a execução das principais funcionalidades: **Inscrição de Atleta**, **Alocação de Local** e **Registro de Resultados**. O diagrama mostra ativações (lifelines), mensagens síncronas e de retorno, fragmentos alternativos (`alt`) para tratamento de validações e cenários de erro, e `loops` para operações repetitivas como a atribuição de medalhas ao pódio.
+
+<img width="900px" src="imagens/diagrama-de-sequencia.png" alt="Diagrama de Sequência"/>
+
+📄 Código-fonte: [`codigos/diagrama-de-sequencia.puml`](codigos/diagrama-de-sequencia.puml)
+
+---
+
 ### Diagrama de Implantação
 
 Ilustra a arquitetura física do sistema, incluindo **dispositivos dos usuários** (navegador e app mobile), **servidor web**, **servidor de aplicação**, **servidor de banco de dados (PostgreSQL/MySQL)**, **servidor de cache (Redis)**, **servidor de arquivos** e **serviços externos** (e-mail/SMTP).
